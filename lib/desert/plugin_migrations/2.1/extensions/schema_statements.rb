@@ -21,11 +21,10 @@ ActiveRecord::ConnectionAdapters::SchemaStatements.module_eval do
             Integer(migration_version_stripped) <= Integer(version_from_table_stripped)
           end
           migration_versions.each do |migration_version|
-            insert_sql = ActiveRecord::Base.send(:sanitize_sql, [
-              "INSERT INTO #{Desert::PluginMigrations::Migrator.schema_migrations_table_name}(plugin_name, version) VALUES(?, ?)",
-              plugin_name,
-              Integer(migration_version.split("_").first.sub(/^0*/, ''))
-            ])
+            insert_sql = 'INSERT INTO %s (plugin_name, version) VALUES (%s, %s)' % [
+              Desert::PluginMigrations::Migrator.schema_migrations_table_name,
+              ActiveRecord::Base.connection.quote(plugin_name),
+              ActiveRecord::Base.connection.quote(Integer(migration_version.split("_").first.sub(/^0*/, '')))]
             execute insert_sql
           end
         end
